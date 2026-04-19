@@ -1,6 +1,1 @@
-# Runtime — no external deps needed (stdlib only: gzip, struct, json, math)
 
-# Dev / test only
-pytest>=7.0
-flake8>=6.0
-pyinstaller>=6.0
