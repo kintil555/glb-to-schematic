@@ -53,11 +53,11 @@ jobs:
 
       - name: Build EXE
         shell: pwsh
-        run: pyinstaller --onefile --name glb-to-schematic --distpath dist src\converter.py
+        run: pyinstaller --onefile --windowed --name glb-to-schematic --distpath dist src\gui.py
 
       - name: Smoke test EXE
         shell: pwsh
-        run: dist\glb-to-schematic.exe --help
+        run: Test-Path dist\glb-to-schematic.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
