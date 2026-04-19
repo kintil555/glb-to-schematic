@@ -91,11 +91,20 @@ class App(tk.Tk):
                               selectcolor=BTN, relief="flat")
         chk.grid(row=5, column=1, sticky="w", padx=8)
 
+        # Multi-block
+        ttk.Label(root, text="Multi-block:").grid(row=7, column=0, sticky="w", pady=4)
+        self.multi_var = tk.BooleanVar(value=True)
+        tk.Checkbutton(root, variable=self.multi_var, bg=BG, fg=FG,
+                       activebackground=BG, activeforeground=ACC,
+                       selectcolor=BTN, relief="flat",
+                       text="Auto-detect blocks from UV texture").grid(
+            row=6, column=1, sticky="w", padx=8, columnspan=2)
+
         # Scale
-        ttk.Label(root, text="Scale:").grid(row=6, column=0, sticky="w", pady=4)
+        ttk.Label(root, text="Scale:").grid(row=7, column=0, sticky="w", pady=4)
         self.scale_var = tk.DoubleVar(value=1.0)
         scale_frame = tk.Frame(root, bg=BG)
-        scale_frame.grid(row=6, column=1, sticky="w", padx=8)
+        scale_frame.grid(row=7, column=1, sticky="w", padx=8)
         self.scale_label = ttk.Label(scale_frame, text="1.0")
         tk.Scale(scale_frame, from_=0.1, to=5.0, resolution=0.1, orient="horizontal",
                  variable=self.scale_var, bg=BG, fg=FG, troughcolor=BTN,
@@ -105,21 +114,21 @@ class App(tk.Tk):
         self.scale_label.pack(side="left", padx=6)
 
         # Separator
-        tk.Frame(root, bg="#45475a", height=1).grid(row=7, column=0, columnspan=3,
+        tk.Frame(root, bg="#45475a", height=1).grid(row=8, column=0, columnspan=3,
                                                      sticky="ew", pady=PAD)
 
         # Progress bar
         self.progress = ttk.Progressbar(root, mode="indeterminate", length=400)
-        self.progress.grid(row=8, column=0, columnspan=3, pady=(0, 8))
+        self.progress.grid(row=9, column=0, columnspan=3, pady=(0, 8))
 
         # Log box
         self.log = tk.Text(root, height=8, bg="#11111b", fg=FG, font=("Consolas", 9),
                            relief="flat", state="disabled", wrap="word")
-        self.log.grid(row=9, column=0, columnspan=3, sticky="ew", pady=(0, PAD))
+        self.log.grid(row=10, column=0, columnspan=3, sticky="ew", pady=(0, PAD))
 
         # Convert button
         self.btn = ttk.Button(root, text="Convert", command=self._start)
-        self.btn.grid(row=10, column=0, columnspan=3, ipadx=20, ipady=4)
+        self.btn.grid(row=11, column=0, columnspan=3, ipadx=20, ipady=4)
 
     def _center(self):
         self.update_idletasks()
@@ -202,6 +211,7 @@ class App(tk.Tk):
                     resolution=self.res_var.get(),
                     block=self.block_var.get(),
                     fill=self.fill_var.get(),
+                    multi_block=self.multi_var.get(),
                     scale=self.scale_var.get(),
                 )
                 sys.stdout = old_stdout
