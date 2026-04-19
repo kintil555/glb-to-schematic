@@ -88,7 +88,7 @@ try:
     tri = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
     vx, w, h, l = voxelize(tri, resolution=8, fill=False)
     assert len(vx) > 0 and w > 0 and h > 0 and l > 0
-    ok(f"single triangle → {len(vx)} voxels, {w}x{h}x{l}")
+    ok(f"single triangle -> {len(vx)} voxels, {w}x{h}x{l}")
 except Exception as e:
     fail("single triangle", e)
 
@@ -148,14 +148,14 @@ except Exception as e:
 
 try:
     assert all(0 < v < 256 for v in BLOCK_MAP.values())
-    ok("all IDs in valid range 1–255")
+    ok("all IDs in valid range 1-255")
 except Exception as e:
     fail("all IDs in valid range", e)
 
 
 # ─── Integration ─────────────────────────────────────────────────────────────
 
-section("Integration: Full Pipeline GLB → Schematic")
+section("Integration: Full Pipeline GLB -> Schematic")
 
 
 def make_minimal_glb() -> bytes:
@@ -205,7 +205,7 @@ try:
             raw = f.read()
         assert raw[0] == 10, f"expected TAG_Compound (10), got {raw[0]}"
 
-    ok("GLB → .schematic: valid gzip+NBT output")
+    ok("GLB -> .schematic: valid gzip+NBT output")
 except Exception as e:
     fail("GLB → .schematic", e)
 
@@ -219,5 +219,5 @@ if FAIL:
     print(f"  ({FAIL} FAILED)")
     sys.exit(1)
 else:
-    print(" ✓")
+    print(" OK")
     sys.exit(0)
