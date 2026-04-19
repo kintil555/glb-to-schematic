@@ -1,0 +1,173 @@
+name: Build GLB-to-Schematic Converter
+
+on:
+  push:
+    branches: [main, master]
+    tags:
+      - "v*"
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:   # allow manual trigger
+
+jobs:
+  # ── 1. Test & Lint ─────────────────────────────────────────────────────────
+  test:
+    name: Test on ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: |
+          python -m pytest tests/ -v --tb=short
+
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          flake8 src/ --max-line-length=120 --ignore=E501,W503
+
+  # ── 2. Build Standalone Executables ────────────────────────────────────────
+  build:
+    name: Build binary on ${{ matrix.os }}
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: glb-to-schematic-linux
+            executable:    glb-to-schematic
+          - os: windows-latest
+            artifact_name: glb-to-schematic-windows
+            executable:    glb-to-schematic.exe
+          - os: macos-latest
+            artifact_name: glb-to-schematic-macos
+            executable:    glb-to-schematic
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build executable with PyInstaller
+        run: |
+          pyinstaller \
+            --onefile \
+            --name glb-to-schematic \
+            --distpath dist/ \
+            src/converter.py
+
+      - name: Test the built binary (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          chmod +x dist/glb-to-schematic
+          dist/glb-to-schematic --help
+
+      - name: Test the built binary (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          dist\glb-to-schematic.exe --help
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist/${{ matrix.executable }}
+          retention-days: 30
+
+  # ── 3. Create GitHub Release on Tag Push ───────────────────────────────────
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets/
+
+      - name: Rename artifacts for release
+        run: |
+          mv release-assets/glb-to-schematic-linux/glb-to-schematic   release-assets/glb-to-schematic-linux
+          mv release-assets/glb-to-schematic-windows/glb-to-schematic.exe release-assets/glb-to-schematic-windows.exe
+          mv release-assets/glb-to-schematic-macos/glb-to-schematic   release-assets/glb-to-schematic-macos
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: "GLB to Schematic ${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## 🎮 GLB/GLTF → Minecraft Schematic Converter ${{ steps.version.outputs.VERSION }}
+
+            Convert any 3D model (GLB/GLTF) into a Minecraft `.schematic` file
+            that can be imported into **Mine-imator**, MCEdit, Litematica, or Schematica.
+
+            ### Downloads
+            | Platform | File |
+            |----------|------|
+            | 🐧 Linux  | `glb-to-schematic-linux` |
+            | 🪟 Windows | `glb-to-schematic-windows.exe` |
+            | 🍎 macOS  | `glb-to-schematic-macos` |
+
+            ### Usage
+            ```bash
+            # Basic conversion (64 voxel resolution)
+            ./glb-to-schematic model.glb output.schematic
+
+            # Higher resolution, wool blocks, solid fill
+            ./glb-to-schematic model.glb output.schematic --resolution 128 --block wool
+
+            # Hollow (surface only), scaled up 2x
+            ./glb-to-schematic model.gltf output.schematic --no-fill --scale 2.0
+            ```
+
+            ### Options
+            ```
+            --resolution  -r   Voxel grid size along longest axis (default: 64)
+            --block       -b   Block type: stone, wool, glass, brick, ... (default: stone)
+            --fill             Fill interior with cobblestone (default)
+            --no-fill          Surface-only (hollow model)
+            --scale       -s   Uniform scale factor (default: 1.0)
+            ```
+          draft: false
+          prerelease: false
+          files: |
+            release-assets/glb-to-schematic-linux
+            release-assets/glb-to-schematic-windows.exe
+            release-assets/glb-to-schematic-macos
