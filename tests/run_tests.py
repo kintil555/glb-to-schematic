@@ -207,7 +207,7 @@ try:
 
     ok("GLB -> .schematic: valid gzip+NBT output")
 except Exception as e:
-    fail("GLB → .schematic", e)
+    fail("GLB -> .schematic", e)
 
 
 # ─── Summary ─────────────────────────────────────────────────────────────────
