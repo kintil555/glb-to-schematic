@@ -78,7 +78,7 @@ def write_schematic(width: int, height: int, length: int,
     with gzip.open(output_path, "wb") as f:
         f.write(root_bytes)
 
-    print(f"[✓] Schematic written → {output_path}")
+    print(f"[OK] Schematic written ->> {output_path}")
     print(f"    Size: {width}W × {height}H × {length}L  ({len(blocks)} blocks)")
 
 
@@ -191,7 +191,7 @@ def apply_node_transform(node, vertices):
     rx, ry, rz, rw = node.get("rotation", [0, 0, 0, 1])
     sx, sy, sz     = node.get("scale",    [1, 1, 1])
 
-    # Quaternion → rotation matrix
+    # Quaternion ->> rotation matrix
     def quat_rotate(x, y, z):
         # Apply quaternion rotation
         ix =  rw*x + ry*z - rz*y
@@ -285,7 +285,7 @@ def voxelize(vertices, resolution: int, fill: bool = True):
     scale = (resolution - 1) / span
 
     print(f"[i] Model bounds: X[{min_x:.2f},{max_x:.2f}] Y[{min_y:.2f},{max_y:.2f}] Z[{min_z:.2f},{max_z:.2f}]")
-    print(f"[i] Scale factor: {scale:.4f} → resolution {resolution}")
+    print(f"[i] Scale factor: {scale:.4f} ->> resolution {resolution}")
 
     def world_to_vox(wx, wy, wz):
         return (
@@ -424,7 +424,7 @@ def convert(input_path: str, output_path: str,
             block: str = "stone",
             fill: bool = True,
             scale: float = 1.0):
-    """Full conversion pipeline: GLB/GLTF → Schematic"""
+    """Full conversion pipeline: GLB/GLTF ->> Schematic"""
 
     p = Path(input_path)
     ext = p.suffix.lower()
